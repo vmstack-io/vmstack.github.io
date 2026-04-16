@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SpinLab by BlueSense — self-hosted VM portal for education. Students spin up a Linux VM in 60 seconds on your own Proxmox hardware.">
+<title>SpinLab — Cloud Lab Portal for Education | BlueSense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #1a5fb4;
+  --blue-dark: #0d3d7a;
+  --blue-light: #e8f0fd;
+  --ink: #111827;
+  --ink-2: #374151;
+  --ink-3: #6b7280;
+  --ink-4: #9ca3af;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --surface-3: #f3f4f6;
+  --border: #e5e7eb;
+  --green: #16a34a;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); color: var(--ink); background: var(--surface); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+/* NAV */
+.nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 2rem; }
+.nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+.nav-dot { width: 28px; height: 28px; border-radius: 7px; background: var(--blue); display: flex; align-items: center; justify-content: center; }
+.nav-dot svg { width: 14px; height: 14px; fill: white; }
+.nav-brand-name { font-weight: 600; font-size: .95rem; }
+.nav-brand-sub { font-size: .75rem; color: var(--ink-3); }
+.nav-links { display: flex; align-items: center; gap: 2rem; }
+.nav-links a { text-decoration: none; font-size: .88rem; color: var(--ink-2); transition: color .15s; }
+.nav-links a:hover { color: var(--blue); }
+.nav-cta { background: var(--blue) !important; color: white !important; padding: 8px 20px; border-radius: var(--radius-sm); font-weight: 500; }
+.nav-cta:hover { background: var(--blue-dark) !important; }
+
+/* HERO */
+.hero { background: var(--ink); padding: 100px 2rem 80px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(26,95,180,.35) 0%, transparent 70%), radial-gradient(ellipse 40% 60% at 20% 80%, rgba(26,95,180,.15) 0%, transparent 60%); }
+.hero-grid { position: absolute; inset: 0; opacity: .04; background-image: linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px); background-size: 48px 48px; }
+.hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+.hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.85); font-size: .78rem; font-weight: 500; padding: 5px 12px; border-radius: 20px; margin-bottom: 2rem; font-family: var(--mono); }
+.hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+.hero h1 { font-size: clamp(2.4rem, 5vw, 3.8rem); font-weight: 600; line-height: 1.1; color: white; letter-spacing: -.03em; max-width: 680px; margin-bottom: 1.5rem; }
+.hero h1 em { font-style: normal; color: #60a5fa; }
+.hero-sub { font-size: 1.05rem; color: rgba(255,255,255,.65); max-width: 520px; line-height: 1.75; margin-bottom: 2.5rem; font-weight: 300; }
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 4rem; }
+.btn-primary { background: var(--blue); color: white; padding: 12px 26px; border-radius: var(--radius-sm); font-weight: 500; font-size: .92rem; text-decoration: none; border: none; cursor: pointer; transition: background .15s, transform .1s; display: inline-block; font-family: var(--sans); }
+.btn-primary:hover { background: #1a52a0; transform: translateY(-1px); }
+.btn-ghost { background: rgba(255,255,255,.08); color: rgba(255,255,255,.85); padding: 12px 26px; border-radius: var(--radius-sm); font-weight: 500; font-size: .92rem; text-decoration: none; border: 1px solid rgba(255,255,255,.15); transition: background .15s; display: inline-block; }
+.btn-ghost:hover { background: rgba(255,255,255,.14); }
+.hero-stats { display: flex; gap: 3rem; flex-wrap: wrap; padding-top: 2.5rem; border-top: 1px solid rgba(255,255,255,.1); }
+.stat-val { font-size: 1.65rem; font-weight: 600; color: white; letter-spacing: -.02em; line-height: 1; }
+.stat-lbl { font-size: .76rem; color: rgba(255,255,255,.5); margin-top: 4px; font-weight: 300; }
+
+/* TRUST BAR */
+.trust-bar { background: var(--surface-2); border-bottom: 1px solid var(--border); padding: .85rem 2rem; }
+.trust-inner { max-width: 1100px; margin: 0 auto; display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; }
+.trust-item { display: flex; align-items: center; gap: 7px; font-size: .82rem; color: var(--ink-3); }
+.trust-item svg { width: 13px; height: 13px; stroke: var(--green); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+/* SECTIONS */
+.section { padding: 88px 2rem; }
+.section-alt { background: var(--surface-2); }
+.container { max-width: 1100px; margin: 0 auto; }
+.eyebrow { font-family: var(--mono); font-size: .72rem; color: var(--blue); letter-spacing: .1em; text-transform: uppercase; margin-bottom: .75rem; font-weight: 500; }
+.section-title { font-size: clamp(1.75rem, 3vw, 2.4rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.2; margin-bottom: 1rem; }
+.section-sub { font-size: .95rem; color: var(--ink-3); max-width: 520px; line-height: 1.75; font-weight: 300; }
+.section-sub.center { margin: 0 auto; text-align: center; }
+
+/* FEATURES */
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5px; background: var(--border); border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 3.5rem; }
+.feat { background: var(--surface); padding: 2rem 1.75rem; transition: background .2s; }
+.feat:hover { background: var(--blue-light); }
+.feat-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--blue-light); display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; }
+.feat-icon svg { width: 20px; height: 20px; stroke: var(--blue); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.feat-title { font-size: .93rem; font-weight: 600; margin-bottom: .5rem; }
+.feat-desc { font-size: .83rem; color: var(--ink-3); line-height: 1.65; font-weight: 300; }
+
+/* HOW IT WORKS */
+.steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; margin-top: 3.5rem; position: relative; }
+.steps::before { content: ''; position: absolute; top: 20px; left: calc(12.5% + 20px); right: calc(12.5% + 20px); height: 1px; background: var(--border); }
+.step { text-align: center; padding: 0 1rem; position: relative; }
+.step-num { width: 40px; height: 40px; border-radius: 50%; background: var(--blue); color: white; font-size: .82rem; font-weight: 600; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-family: var(--mono); }
+.step-title { font-size: .92rem; font-weight: 600; margin-bottom: .4rem; }
+.step-desc { font-size: .82rem; color: var(--ink-3); line-height: 1.6; font-weight: 300; }
+
+/* USE CASES */
+.cases-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin-top: 3rem; }
+.case-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; transition: border-color .2s, transform .2s; }
+.case-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+.case-icon { font-size: 1.3rem; width: 44px; height: 44px; border-radius: var(--radius-sm); background: var(--surface-3); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+.case-title { font-size: .93rem; font-weight: 600; margin-bottom: .4rem; }
+.case-desc { font-size: .83rem; color: var(--ink-3); line-height: 1.65; font-weight: 300; }
+
+/* DEMO */
+.demo-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 3rem; }
+.demo-video { aspect-ratio: 16/9; background: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; color: rgba(255,255,255,.35); position: relative; }
+.demo-video::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(26,95,180,.18) 0%, transparent 70%); }
+.play-btn { width: 64px; height: 64px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; cursor: pointer; transition: transform .2s; }
+.play-btn:hover { transform: scale(1.08); }
+.play-btn svg { width: 22px; height: 22px; fill: white; margin-left: 3px; }
+.demo-video span { font-size: .82rem; position: relative; z-index: 1; }
+.demo-footer { padding: 1.25rem 1.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--border); }
+.demo-footer p { font-size: .88rem; color: var(--ink-3); }
+.demo-footer a { color: var(--blue); text-decoration: none; font-weight: 500; font-size: .88rem; }
+
+/* PRICING */
+.pricing-card { max-width: 500px; margin: 3rem auto 0; border: 2px solid var(--blue); border-radius: var(--radius); overflow: hidden; }
+.pricing-head { background: var(--blue); padding: 2rem; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.pricing-badge-pill { background: rgba(255,255,255,.2); color: white; font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; font-family: var(--mono); align-self: flex-start; }
+.pricing-price { font-size: 2.8rem; font-weight: 600; line-height: 1; letter-spacing: -.03em; color: white; }
+.pricing-period { font-size: .82rem; color: rgba(255,255,255,.7); margin-top: 4px; }
+.pricing-body { padding: 1.75rem; background: var(--surface); }
+.pricing-note { font-size: .75rem; color: var(--ink-4); margin-bottom: 1.5rem; font-family: var(--mono); }
+.pricing-list { list-style: none; margin-bottom: 1.75rem; }
+.pricing-list li { display: flex; align-items: center; gap: 10px; font-size: .87rem; padding: .55rem 0; border-bottom: 1px solid var(--surface-3); color: var(--ink-2); }
+.pricing-list li:last-child { border-bottom: none; }
+.chk { width: 18px; height: 18px; border-radius: 50%; background: #dcfce7; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.chk svg { width: 10px; height: 10px; stroke: var(--green); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.btn-block { width: 100%; background: var(--blue); color: white; padding: 13px; border-radius: var(--radius-sm); font-weight: 500; font-size: .93rem; text-decoration: none; border: none; cursor: pointer; transition: background .15s; display: block; text-align: center; font-family: var(--sans); }
+.btn-block:hover { background: var(--blue-dark); }
+
+/* FORM */
+.form-card { max-width: 640px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2.5rem; }
+.form-lbl { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-4); margin-bottom: 1rem; margin-top: 1.5rem; display: block; }
+.form-lbl:first-child { margin-top: 0; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.field { margin-bottom: .9rem; }
+.field label { display: block; font-size: .78rem; font-weight: 500; color: var(--ink-2); margin-bottom: 4px; }
+.field input, .field select, .field textarea { width: 100%; font-family: var(--sans); font-size: .87rem; color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; outline: none; transition: border-color .15s; appearance: none; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,95,180,.1); }
+.field textarea { resize: vertical; min-height: 84px; line-height: 1.6; }
+.field-hint { font-size: .73rem; color: var(--ink-4); margin-top: 3px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+.checkbox-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 1.25rem; }
+.checkbox-row input { width: 15px; height: 15px; margin-top: 2px; flex-shrink: 0; accent-color: var(--blue); }
+.checkbox-row label { font-size: .78rem; color: var(--ink-3); line-height: 1.55; cursor: pointer; }
+.checkbox-row a { color: var(--blue); }
+.submit-btn { width: 100%; background: var(--blue); color: white; border: none; border-radius: var(--radius-sm); padding: 13px; font-size: .93rem; font-weight: 500; cursor: pointer; font-family: var(--sans); transition: background .15s; }
+.submit-btn:hover { background: var(--blue-dark); }
+.form-note { text-align: center; font-size: .73rem; color: var(--ink-4); margin-top: .9rem; line-height: 1.6; }
+.form-note a { color: var(--blue); }
+
+/* SUCCESS */
+.success-state { display: none; text-align: center; padding: 3rem 1rem; }
+.success-icon { width: 56px; height: 56px; border-radius: 50%; background: #dcfce7; margin: 0 auto 1.25rem; display: flex; align-items: center; justify-content: center; }
+.success-icon svg { width: 24px; height: 24px; stroke: var(--green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.success-title { font-size: 1.3rem; font-weight: 600; margin-bottom: .75rem; }
+.success-sub { font-size: .88rem; color: var(--ink-3); max-width: 380px; margin: 0 auto 1.75rem; line-height: 1.7; }
+.next-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; text-align: left; max-width: 400px; margin: 0 auto; }
+.next-box-lbl { font-family: var(--mono); font-size: .67rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-4); margin-bottom: .75rem; font-weight: 500; }
+.next-item { display: flex; gap: 10px; align-items: flex-start; font-size: .82rem; color: var(--ink-2); margin-bottom: .6rem; line-height: 1.5; }
+.next-item:last-child { margin-bottom: 0; }
+.next-n { width: 20px; height: 20px; border-radius: 50%; background: var(--blue); color: white; font-size: .67rem; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; font-family: var(--mono); }
+
+/* FOOTER */
+.footer { background: var(--ink); color: rgba(255,255,255,.4); padding: 2.5rem 2rem; font-size: .8rem; }
+.footer-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.footer a { color: rgba(255,255,255,.4); text-decoration: none; }
+.footer a:hover { color: rgba(255,255,255,.7); }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .features-grid { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .steps::before { display: none; }
+  .cases-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .hero-stats { gap: 1.5rem; }
+  .pricing-head { flex-direction: column; }
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
+.hero-inner > * { animation: fadeUp .6s ease forwards; opacity: 0; }
+.hero-badge{animation-delay:.1s}.hero h1{animation-delay:.2s}.hero-sub{animation-delay:.3s}.hero-actions{animation-delay:.4s}.hero-stats{animation-delay:.5s}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="/">
+      <div class="nav-dot"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg></div>
+      <div><div class="nav-brand-name">BlueSense</div><div class="nav-brand-sub">SpinLab</div></div>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#contact" class="nav-cta">Request demo</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-badge"><div class="hero-badge-dot"></div>SpinLab · by BlueSense · Benelux</div>
+    <h1>Your own cloud lab —<br><em>on your own hardware</em></h1>
+    <p class="hero-sub">Give every student a personal Linux VM in under 60 seconds. Self-hosted on your Proxmox cluster — no cloud accounts, no Azure bills, no complexity.</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">Request a free demo</a>
+      <a href="#how-it-works" class="btn-ghost">See how it works →</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-val">&lt; 60s</div><div class="stat-lbl">VM provisioning time</div></div>
+      <div><div class="stat-val">€950</div><div class="stat-lbl">Per institution / year</div></div>
+      <div><div class="stat-val">0</div><div class="stat-lbl">Cloud dependencies</div></div>
+      <div><div class="stat-val">∞</div><div class="stat-lbl">Students (hardware-bound)</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Response within 1 business day</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Demo in Dutch or English</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Benelux invoicing · BTW included</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>No commitment required</div>
+  </div>
+</div>
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="eyebrow">Features</div>
+    <div class="section-title">Everything you need.<br>Nothing you don't.</div>
+    <p class="section-sub">A lean self-hosted portal. Students register, upload their SSH key, and get a running VM in under a minute.</p>
+    <div class="features-grid">
+      <div class="feat">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="feat-title">Under 60 seconds to a VM</div>
+        <div class="feat-desc">Students self-register and deploy without waiting for IT. Resources are pre-configured per template.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="feat-title">SSH key authentication</div>
+        <div class="feat-desc">No passwords. Students bring their own key pair. Works with VS Code Remote, PuTTY, and any terminal.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></div>
+        <div class="feat-title">Scale by adding nodes</div>
+        <div class="feat-desc">Proxmox cluster-aware. Add a refurbished desktop and capacity grows instantly — no cloud bills.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div class="feat-title">Admin approval flow</div>
+        <div class="feat-desc">Teachers control who gets access. Review and approve registrations before VMs are provisioned.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div class="feat-title">On-premise · GDPR-friendly</div>
+        <div class="feat-desc">All data stays on your servers. No student data in the cloud. Ideal for Belgian and Dutch institutions.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+        <div class="feat-title">Simple Docker install</div>
+        <div class="feat-desc">One Docker Compose file on your Proxmox node. Updates via image pull. No infra expertise required.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt" id="how-it-works">
+  <div class="container">
+    <div class="eyebrow">How it works</div>
+    <div class="section-title">Up and running in four steps</div>
+    <p class="section-sub">For IT, setup takes under an hour. For students, it's a two-minute self-service flow.</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">01</div><div class="step-title">Install SpinLab</div><div class="step-desc">Run the Docker Compose on your Proxmox node. Done in under an hour.</div></div>
+      <div class="step"><div class="step-num">02</div><div class="step-title">Students register</div><div class="step-desc">They upload their SSH public key and await admin approval via the portal.</div></div>
+      <div class="step"><div class="step-num">03</div><div class="step-title">VM is deployed</div><div class="step-desc">SpinLab picks the best node and provisions a Linux VM automatically.</div></div>
+      <div class="step"><div class="step-num">04</div><div class="step-title">Connect via SSH</div><div class="step-desc">Student connects immediately with their private key from any terminal.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="eyebrow">Who uses SpinLab</div>
+    <div class="section-title">Made for hands-on learning</div>
+    <p class="section-sub">Any organisation that needs fast, isolated Linux environments for training or education.</p>
+    <div class="cases-grid">
+      <div class="case-card"><div class="case-icon">🎓</div><div class="case-title">Hogescholen &amp; universities</div><div class="case-desc">Give every student a personal Linux environment for networking, security, or DevOps labs — without IT overhead.</div></div>
+      <div class="case-card"><div class="case-icon">🏫</div><div class="case-title">Secondary IT education</div><div class="case-desc">TSO and BSO IT classes can run real Linux exercises on school hardware instead of shared classroom PCs.</div></div>
+      <div class="case-card"><div class="case-icon">🏢</div><div class="case-title">Corporate training</div><div class="case-desc">Spin up isolated environments per trainee for cybersecurity bootcamps, onboarding labs, or certification prep.</div></div>
+      <div class="case-card"><div class="case-icon">⚡</div><div class="case-title">Hackathons &amp; events</div><div class="case-desc">Provision 50+ VMs in minutes. Clean up just as fast when the event is over. No lingering cloud costs.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="eyebrow">Demo</div>
+    <div class="section-title">See it in action</div>
+    <p class="section-sub">Watch a student register, get approved, and connect to their VM in under two minutes.</p>
+    <div class="demo-wrap">
+      <div class="demo-video">
+        <div class="play-btn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <span>Demo video — coming soon</span>
+      </div>
+      <div class="demo-footer">
+        <p>Prefer a live walkthrough? We'll show SpinLab running on your own hardware.</p>
+        <a href="#contact">Book a 30-min demo call →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="container" style="text-align:center">
+    <div class="eyebrow">Pricing</div>
+    <div class="section-title">Simple annual licensing</div>
+    <p class="section-sub center">One licence for your entire Proxmox cluster. Includes updates and support. Belgian BTW invoice included.</p>
+    <div class="pricing-card">
+      <div class="pricing-head">
+        <span class="pricing-badge-pill">Early adopter offer</span>
+        <div><div class="pricing-price">€950</div><div class="pricing-period">per institution / year</div></div>
+      </div>
+      <div class="pricing-body">
+        <div class="pricing-note">excl. BTW · annual renewal · Benelux</div>
+        <ul class="pricing-list">
+          <li><span class="chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Unlimited student accounts</li>
+          <li><span class="chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Unlimited VMs (hardware-bound)</li>
+          <li><span class="chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Multi-node Proxmox cluster support</li>
+          <li><span class="chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Admin portal + approval flow</li>
+          <li><span class="chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Docker Compose delivery + image updates</li>
+          <li><span class="chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Email support (Benelux)</li>
+          <li><span class="chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Belgian BTW invoice via Dexxter</li>
+        </ul>
+        <a href="#contact" class="btn-block">Request a quote</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt" id="contact">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3rem">
+      <div class="eyebrow">Request a demo</div>
+      <div class="section-title">See SpinLab in action</div>
+      <p class="section-sub center">Fill in the form and we'll set up a 30-minute live demo tailored to your setup. No commitment, no sales pressure.</p>
+    </div>
+    <div class="form-card">
+      <div id="form-body">
+        <span class="form-lbl">Your details</span>
+        <div class="form-row">
+          <div class="field"><label>First name</label><input type="text" placeholder="Jan" id="fname"></div>
+          <div class="field"><label>Last name</label><input type="text" placeholder="De Smedt" id="lname"></div>
+        </div>
+        <div class="field"><label>Work email</label><input type="email" placeholder="jan.desmedt@hogeschool.be" id="email"><div class="field-hint">Use your institutional address if possible.</div></div>
+        <div class="field"><label>Role</label><select id="role"><option value="" disabled selected>Select your role</option><option>IT coordinator</option><option>Lecturer / lector</option><option>Department head</option><option>Purchasing / procurement</option><option>Other</option></select></div>
+
+        <hr class="divider">
+        <span class="form-lbl">Your institution</span>
+        <div class="field"><label>Institution name</label><input type="text" placeholder="e.g. UCLL, HoGent, Thomas More" id="institution"></div>
+        <div class="form-row">
+          <div class="field"><label>Country</label><select><option>Belgium</option><option>Netherlands</option><option>Luxembourg</option><option>Other</option></select></div>
+          <div class="field"><label>Approx. number of students</label><select><option value="" disabled selected>Select range</option><option>Under 50</option><option>50 – 200</option><option>200 – 500</option><option>500+</option></select></div>
+        </div>
+
+        <hr class="divider">
+        <span class="form-lbl">Your setup</span>
+        <div class="field"><label>Do you already run Proxmox?</label><select><option value="" disabled selected>Select an option</option><option>Yes — single node</option><option>Yes — multi-node cluster</option><option>No, but we have on-premise hardware</option><option>Not sure yet</option></select><div class="field-hint">SpinLab works on any Proxmox setup, including refurbished hardware.</div></div>
+        <div class="field"><label>What would you like to cover? <span style="font-weight:400;color:var(--ink-4)">(optional)</span></label><textarea placeholder="e.g. How students register, managing limits, adding nodes..."></textarea></div>
+
+        <hr class="divider">
+        <span class="form-lbl">Availability</span>
+        <div class="field"><label>Preferred demo format</label><select><option value="" disabled selected>Select a format</option><option>Online (Google Meet / Teams)</option><option>On-site at our institution</option><option>No preference</option></select></div>
+        <div class="field"><label>Preferred dates or times <span style="font-weight:400;color:var(--ink-4)">(optional)</span></label><input type="text" placeholder="e.g. Week of 3 February, mornings preferred"></div>
+
+        <hr class="divider">
+        <div class="checkbox-row">
+          <input type="checkbox" id="gdpr">
+          <label for="gdpr">I agree that BlueSense may use my contact details to schedule and follow up on the demo request. Your data is never shared with third parties. <a href="/privacy.html">Privacy policy</a>.</label>
+        </div>
+        <button class="submit-btn" onclick="submitForm()">Request my free demo</button>
+        <p class="form-note">No credit card. No commitment. Just a demo.<br>Questions? <a href="mailto:hello@bluesense.be">hello@bluesense.be</a></p>
+      </div>
+      <div class="success-state" id="success-state">
+        <div class="success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="success-title">Demo request received</div>
+        <p class="success-sub">Thanks — we'll be in touch within one business day to confirm a time that works for you.</p>
+        <div class="next-box">
+          <div class="next-box-lbl">What happens next</div>
+          <div class="next-item"><div class="next-n">1</div>You'll receive a confirmation email from hello@bluesense.be</div>
+          <div class="next-item"><div class="next-n">2</div>We'll send a calendar invite with a Meet or Teams link</div>
+          <div class="next-item"><div class="next-n">3</div>30-minute live walkthrough tailored to your specific setup</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© BlueSense 2025 · <a href="/">bluesense.be</a></span>
+    <span>Aalst, Belgium · BTW-plichtig</span>
+    <span><a href="mailto:hello@bluesense.be">hello@bluesense.be</a></span>
+  </div>
+</footer>
+
+<script>
+function submitForm(){
+  var gdpr=document.getElementById('gdpr'),fname=document.getElementById('fname'),email=document.getElementById('email');
+  if(!fname.value.trim()){fname.focus();return;}
+  if(!email.value.trim()){email.focus();return;}
+  if(!gdpr.checked){
+    gdpr.style.outline='2px solid #dc2626';
+    gdpr.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(function(){gdpr.style.outline='';},2500);
+    return;
+  }
+  document.getElementById('form-body').style.display='none';
+  document.getElementById('success-state').style.display='block';
+}
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var t=document.querySelector(this.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}
+  });
+});
+</script>
+</body>
+</html>
